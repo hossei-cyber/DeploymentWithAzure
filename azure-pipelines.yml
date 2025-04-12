@@ -24,10 +24,10 @@ stages:
           command: 'install'
           workingDir: 'client'
       - task: Npm@1
-        displayName: "Npm install for server"
+        displayName: "Npm install"
         inputs:
           command: 'install'
-          workingDir: 'server'
+          workingDir: '/'
       - task: Npm@1
         displayName: "Npm build for client"
         inputs:
@@ -74,4 +74,5 @@ stages:
           WebAppName: 'project01'
           packageForLinux: '$(Pipeline.Workspace)'
           DeploymentTypeLinux: 'oneDeploy'
+          StartupCommand: 'cd server && npm start'
             
