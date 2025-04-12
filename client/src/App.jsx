@@ -8,7 +8,7 @@ function App() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get('https://project01-hkhadsfqggb0a8et.germanywestcentral-01.azurewebsites.net/getHello', {
+        const response = await axios.get('https://project01-hkhadsfqggb0a8et.germanywestcentral-01.azurewebsites.net//getHello', {
           withCredentials: true,
         });
         console.log('Fetched data:', response.data);
