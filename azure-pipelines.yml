@@ -40,6 +40,13 @@ stages:
           targetPath: '$(Build.ArtifactStagingDirectory)'
           artifact: 'drop'
           publishLocation: 'pipeline'
+      - script: |
+          echo "Pipeline.Workspace path:"
+          echo "$(Pipeline.Workspace)"
+          echo "Listing contents of $(Pipeline.Workspace)/drop:"
+          ls -la $(Pipeline.Workspace)/drop
+        displayName: 'Verify artifact location'
+
 
   - stage: DeployStage
     dependsOn: BuildStage
@@ -61,5 +68,6 @@ stages:
           azureSubscription: 'Azure for Students(3726fb87-ee7b-42c4-a39c-d437513f686c)'
           appType: 'webAppLinux'
           WebAppName: 'project01Student'
-          packageForLinux: '$(Pipeline.Workspace)/drop/frontend.zip'
+          packageForLinux: '$(System.ArtifactsDirectory)/drop/frontend.zip'
+
           DeploymentTypeLinux: 'zipDeploy'
