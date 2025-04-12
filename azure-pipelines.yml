@@ -74,4 +74,4 @@ stages:
           WebAppName: 'project01'
           packageForLinux: '$(Pipeline.Workspace)'
           DeploymentTypeLinux: 'oneDeploy'
-      
+            
