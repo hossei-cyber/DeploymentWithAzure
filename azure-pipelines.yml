@@ -66,10 +66,6 @@ stages:
           buildType: 'current'
           artifactName: 'drop'
           targetPath: '$(Pipeline.Workspace)'
-      - script: |
-          cd $(Pipeline.Workspace)/server
-          npm start
-        displayName: "Start backend application"
       - task: AzureRmWebAppDeployment@5
         inputs:
           ConnectionType: 'AzureRM'
