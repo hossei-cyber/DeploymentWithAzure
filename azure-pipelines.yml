@@ -72,5 +72,5 @@ stages:
           azureSubscription: 'Azure subscription 1 (0b406d1e-4714-4508-9e56-cdb4885278c1)'
           appType: 'webAppLinux'
           WebAppName: 'project01'
-          packageForLinux: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+          packageForLinux: '$(Build.ArtifactStagingDirectory)/drop/$(Build.BuildId).zip'
           DeploymentTypeLinux: 'oneDeploy'
