@@ -1,77 +1,92 @@
-# Node.js with React
-# Build a Node.js project that uses React.
-# Add steps that analyze code, save build artifacts, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
-
 trigger:
-- main
+  - main
 
 stages:
-  - stage: "BuildStage"
+  - stage: BuildStage
     jobs:
-    - job: "Buildjob"
-      pool:
-        vmImage: ubuntu-latest
-      steps:
-      - task: NodeTool@0
-        inputs:
-          versionSpec: '20.x'
-        displayName: 'Install Node.js'
+      - job: BuildJob
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          # Install Node.js
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '20.x'
+            displayName: 'Install Node.js'
 
-      - task: Npm@1
-        displayName: "Npm install for client"
-        inputs:
-          command: 'install'
-          workingDir: 'client'
-      - task: Npm@1
-        displayName: "Npm install"
-        inputs:
-          command: 'install'
-          workingDir: '/'
-      - task: Npm@1
-        displayName: "Npm build for client"
-        inputs:
-          command: 'custom'
-          workingDir: 'client'
-          customCommand: 'run build'
+          # Clean npm cache and remove node_modules
+          - script: |
+              npm cache clean --force
+              rm -rf node_modules package-lock.json
+            displayName: 'Clean npm cache and remove node_modules'
 
-      - task: CopyFiles@2
-        inputs:
-          Contents: |
-            client/build/**
-            /**
-          TargetFolder: '$(Build.ArtifactStagingDirectory)'
-      # - task: ArchiveFiles@2
-      #   inputs:
-      #     rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'
-      #     includeRootFolder: true
-      #     archiveType: 'zip'
-      #     archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
-      #     replaceExistingArchive: true
-      - task: PublishPipelineArtifact@1
-        inputs:
-          targetPath: '$(Build.ArtifactStagingDirectory)'
-          artifact: 'drop'
-          publishLocation: 'pipeline'
+          # Install backend dependencies
+          - task: Npm@1
+            displayName: 'Install backend dependencies'
+            inputs:
+              command: 'install'
+              workingDir: '.'
 
-  - stage: "DeployStage"
-    dependsOn: "BuildStage"
+          # Install frontend dependencies
+          - task: Npm@1
+            displayName: 'Install frontend dependencies'
+            inputs:
+              command: 'install'
+              workingDir: 'client'
+
+          # Build React app
+          - task: Npm@1
+            displayName: 'Build React app'
+            inputs:
+              command: 'custom'
+              workingDir: 'client'
+              customCommand: 'run build'
+
+          # Move React build to backend's public directory
+          - script: |
+              rm -rf public
+              mv client/build public
+            displayName: 'Move React build to backend public directory'
+
+          # Archive the entire project (backend + frontend build)
+          - task: ArchiveFiles@2
+            displayName: 'Archive project files'
+            inputs:
+              rootFolderOrFile: '.'
+              includeRootFolder: false
+              archiveType: 'zip'
+              archiveFile: '$(Build.ArtifactStagingDirectory)/project.zip'
+              replaceExistingArchive: true
+
+          # Publish the archived project
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish project artifact'
+            inputs:
+              targetPath: '$(Build.ArtifactStagingDirectory)/project.zip'
+              artifact: 'drop'
+
+  - stage: DeployStage
+    dependsOn: BuildStage
     jobs:
-    - job: 
-      pool:
-        vmImage: ubuntu-latest
-      steps:
-      - task: DownloadPipelineArtifact@2
-        inputs:
-          buildType: 'current'
-          artifactName: 'drop'
-          targetPath: '$(Pipeline.Workspace)'
-      - task: AzureRmWebAppDeployment@5
-        inputs:
-          ConnectionType: 'AzureRM'
-          azureSubscription: 'Azure subscription 1 (0b406d1e-4714-4508-9e56-cdb4885278c1)'
-          appType: 'webAppLinux'
-          WebAppName: 'project01'
-          packageForLinux: '$(Pipeline.Workspace)'
-          DeploymentTypeLinux: 'oneDeploy'
-            
+      - job: DeployJob
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          # Download the project artifact
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download project artifact'
+            inputs:
+              buildType: 'current'
+              artifactName: 'drop'
+              targetPath: '$(Pipeline.Workspace)'
+
+          # Deploy to Azure Web App
+          - task: AzureRmWebAppDeployment@5
+            displayName: 'Deploy to Azure Web App'
+            inputs:
+              ConnectionType: 'AzureRM'
+              azureSubscription: 'Azure subscription 1 (0b406d1e-4714-4508-9e56-cdb4885278c1)'
+              appType: 'webAppLinux'
+              WebAppName: 'project01'
+              packageForLinux: '$(Pipeline.Workspace)/project.zip'
+              DeploymentTypeLinux: 'zipDeploy'
