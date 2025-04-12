@@ -23,6 +23,7 @@ pool.connect((err) => {
   }
 });
 
+//POrt
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
@@ -32,25 +33,22 @@ app.listen(PORT, () => {
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 
-// app.get('/getHello', (req, res) => {
-//   res.send('Hello from the server 2!');
-// });
+
+// Routes
+app.get('/getHello', (req, res) => {
+  res.send('Hello from the server 2!');
+});
 app.get('/', (req, res) => {
   res.send('Hello from the server!');
 });
 
-
-//Route to get food data
 app.get('/getFood', async (req, res) => {
-  const query = `
-    SELECT *
-    FROM foods
-  `;
+  const query = `SELECT * FROM foods`;
 
   try {
     const result = await pool.query(query);
     if (result.rows.length === 0) {
-      return res.status(404).json({ message: 'No foods found' });
+      return res.json([]);
     }
     res.json(result.rows);
     console.log("foods", result.rows);
@@ -59,5 +57,6 @@ app.get('/getFood', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch foods' });
   }
 });
+
 
 module.exports = app;

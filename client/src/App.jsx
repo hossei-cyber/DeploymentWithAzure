@@ -19,11 +19,27 @@ function App() {
     };
     fetchData();
   }, []);
+
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       const response = await axios.get('http://localhost:8080/getFood', {
+  //         withCredentials: true,
+  //       });
+  //       console.log('Fetched data:', response.data);
+  //       setData(response.data);
+  //     } catch (error) {
+  //       console.error('Error fetching data:', error);
+  //     }
+  //   };
+  //   fetchData();
+  // }
+  // , []);
   
 
   return (
     <div className="App">
-      {data.length > 0 ? (
+      {Array.isArray(data) && data.length > 0 ? (
         <>
           <h1 className='header'>Food Data</h1>
           <div className="food-container">
@@ -41,12 +57,12 @@ function App() {
       ) : (
         <p>No data available</p>
       )}
+    </div>
+  );
+}
+export default App;
       {/* {data.length > 0 ? (
           <p>{data}</p>
       ) : (
         <p>Hello World from the Client!</p>
       )} */}
-    </div>
-  );
-}
-export default App;
