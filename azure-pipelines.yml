@@ -31,12 +31,17 @@ stages:
           Contents: |
             client/build/**
           TargetFolder: '$(Build.ArtifactStagingDirectory)'
-
-      - task: PublishPipelineArtifact@1
+      - task: ArchiveFiles@2
         inputs:
-          targetPath: '$(Build.ArtifactStagingDirectory)'
-          artifact: 'drop'
-          publishLocation: 'pipeline'
+          rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
+          includeRootFolder: false
+          archiveType: 'zip'
+          archiveFile: '$(Build.ArtifactStagingDirectory)/frontend.zip'
+          replaceExistingArchive: true
+        displayName: 'Archive frontend Files'
+
+      - publish: '$(Build.ArtifactStagingDirectory)/frontend.zip'
+        artifact: 'drop'
 
   - stage: "DeployStage"
     dependsOn: "BuildStage"
@@ -45,11 +50,8 @@ stages:
       pool:
         vmImage: ubuntu-latest
       steps:
-      - task: DownloadPipelineArtifact@2
-        inputs:
-          buildType: 'current'
-          artifactName: 'drop'
-          targetPath: '$(Pipeline.Workspace)'
+      - download: current
+        artifact: drop
 
       - task: AzureRmWebAppDeployment@5
         inputs:
@@ -57,5 +59,6 @@ stages:
           azureSubscription: 'Azure for Students(3726fb87-ee7b-42c4-a39c-d437513f686c)'
           appType: 'webAppLinux'
           WebAppName: 'project01Student'
-          packageForLinux: '$(Pipeline.Workspace)'
-          DeploymentTypeLinux: 'oneDeploy'
+          packageForLinux: '$(Pipeline.Workspace)/drop/frontend.zip'
+          DeploymentTypeLinux: 'zipDeploy'
+          StartupCommand: 'cd client && npm start'
