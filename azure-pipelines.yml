@@ -2,56 +2,52 @@ trigger:
 - main
 
 stages:
-  - stage: "BuildStage"
-    jobs:
-    - job: "Buildjob"
-      pool:
-        vmImage: ubuntu-latest
-      steps:
-      - task: NodeTool@0
-        inputs:
-          versionSpec: '20.x'
-        displayName: 'Install Node.js'
+- stage: Build
+  jobs:
+  - job: BuildJob
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '20.x'
+      displayName: 'Install Node.js'
 
-      - script: npm cache clean --force
-        displayName: 'Clean npm cache'
+    - script: |
+        npm install
+      displayName: 'Install dependencies'
 
-      - script: |
-          rm -rf node_modules package-lock.json
-        displayName: 'Remove node_modules and package-lock.json'
-      - script: |
-          npm install
-        displayName: 'npm install'
-      - task: CopyFiles@2
-        inputs:
-          Contents: /**
-          TargetFolder: '$(Build.ArtifactStagingDirectory)'
+    - task: ArchiveFiles@2
+      inputs:
+        rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
+        includeRootFolder: false
+        archiveType: 'zip'
+        archiveFile: '$(Build.ArtifactStagingDirectory)/backend.zip'
+        replaceExistingArchive: true
+      displayName: 'Archive backend files'
 
-      - task: PublishPipelineArtifact@1
-        inputs:
-          targetPath: '$(Build.ArtifactStagingDirectory)'
-          artifact: 'drop'
-          publishLocation: 'pipeline'
-        
+    - publish: '$(Build.ArtifactStagingDirectory)/backend.zip'
+      artifact: 'drop'
 
-  - stage: "DeployStage"
-    dependsOn: "BuildStage"
-    jobs:
-    - job: 
-      pool:
-        vmImage: ubuntu-latest
-      steps:
-      - task: DownloadPipelineArtifact@2
-        inputs:
-          buildType: 'current'
-          artifactName: 'drop'
-          targetPath: '$(Pipeline.Workspace)'
+- stage: Deploy
+  dependsOn: Build
+  jobs:
+  - deployment: DeployJob
+    environment: 'production'
+    pool:
+      vmImage: ubuntu-latest
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: current
+            artifact: drop
 
-      - task: AzureRmWebAppDeployment@5
-        inputs:
-          ConnectionType: 'AzureRM'
-          azureSubscription: 'Azure subscription 1 (0b406d1e-4714-4508-9e56-cdb4885278c1)'
-          appType: 'webAppLinux'
-          WebAppName: 'project01'
-          packageForLinux: '$(Pipeline.Workspace)'
-          DeploymentTypeLinux: 'oneDeploy'
+          - task: AzureRmWebAppDeployment@5
+            inputs:
+              ConnectionType: 'AzureRM'
+              azureSubscription: 'Azure subscription 1 (0b406d1e-4714-4508-9e56-cdb4885278c1)'
+              appType: 'webAppLinux'
+              WebAppName: 'project01'
+              packageForLinux: '$(Pipeline.Workspace)/drop/backend.zip'
+              DeploymentTypeLinux: 'zipDeploy'
