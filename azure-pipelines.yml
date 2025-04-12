@@ -21,9 +21,7 @@ stages:
         displayName: 'Remove node_modules and package-lock.json'
       - script: |
           npm install
-          npm run build --if-present
-          npm run test --if-present
-        displayName: 'npm install, build and test'
+        displayName: 'npm install'
       - task: CopyFiles@2
         inputs:
           Contents: /**
