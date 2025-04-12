@@ -30,7 +30,7 @@ stages:
         displayName: "Npm install"
         inputs:
           command: 'install'
-          workingDir: '/'
+          workingDir: '.'
 
       - task: Npm@1
         displayName: "Npm build for client"
