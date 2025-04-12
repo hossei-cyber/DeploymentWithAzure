@@ -3,10 +3,12 @@ trigger:
 
 stages:
 - stage: Build
+  displayName: 'Build Stage'
   jobs:
   - job: BuildJob
+    displayName: 'Build Job'
     pool:
-      vmImage: ubuntu-latest
+      vmImage: 'ubuntu-latest'
     steps:
     - task: NodeTool@0
       inputs:
@@ -15,7 +17,7 @@ stages:
 
     - script: |
         npm install
-      displayName: 'Install dependencies'
+      displayName: 'Install Dependencies'
 
     - task: ArchiveFiles@2
       inputs:
@@ -24,18 +26,20 @@ stages:
         archiveType: 'zip'
         archiveFile: '$(Build.ArtifactStagingDirectory)/backend.zip'
         replaceExistingArchive: true
-      displayName: 'Archive backend files'
+      displayName: 'Archive Backend Files'
 
     - publish: '$(Build.ArtifactStagingDirectory)/backend.zip'
       artifact: 'drop'
 
 - stage: Deploy
+  displayName: 'Deploy Stage'
   dependsOn: Build
   jobs:
   - deployment: DeployJob
+    displayName: 'Deploy Job'
     environment: 'production'
     pool:
-      vmImage: ubuntu-latest
+      vmImage: 'ubuntu-latest'
     strategy:
       runOnce:
         deploy:
