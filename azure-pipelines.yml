@@ -58,7 +58,7 @@ stages:
           ConnectionType: 'AzureRM'
           azureSubscription: 'Azure for Students(3726fb87-ee7b-42c4-a39c-d437513f686c)'
           appType: 'webAppLinux'
-          WebAppName: 'project01Student'
+          WebAppName: 'project02Student'
           packageForLinux: '$(Pipeline.Workspace)/drop/frontend.zip'
           DeploymentTypeLinux: 'zipDeploy'
           StartupCommand: 'cd client && npm start'
