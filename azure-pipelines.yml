@@ -1,8 +1,3 @@
-# Node.js with React
-# Build a Node.js project that uses React.
-# Add steps that analyze code, save build artifacts, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
-
 trigger:
 - main
 
@@ -18,16 +13,25 @@ stages:
           versionSpec: '20.x'
         displayName: 'Install Node.js'
 
+      - script: npm cache clean --force
+        displayName: 'Clean npm cache'
+
+      - script: |
+          rm -rf node_modules package-lock.json
+        displayName: 'Remove node_modules and package-lock.json'
+
       - task: Npm@1
         displayName: "Npm install for client"
         inputs:
           command: 'install'
           workingDir: 'client'
+
       - task: Npm@1
         displayName: "Npm install"
         inputs:
           command: 'install'
           workingDir: '/'
+
       - task: Npm@1
         displayName: "Npm build for client"
         inputs:
@@ -41,13 +45,7 @@ stages:
             client/build/**
             /**
           TargetFolder: '$(Build.ArtifactStagingDirectory)'
-      # - task: ArchiveFiles@2
-      #   inputs:
-      #     rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'
-      #     includeRootFolder: true
-      #     archiveType: 'zip'
-      #     archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
-      #     replaceExistingArchive: true
+
       - task: PublishPipelineArtifact@1
         inputs:
           targetPath: '$(Build.ArtifactStagingDirectory)'
@@ -66,6 +64,7 @@ stages:
           buildType: 'current'
           artifactName: 'drop'
           targetPath: '$(Pipeline.Workspace)'
+
       - task: AzureRmWebAppDeployment@5
         inputs:
           ConnectionType: 'AzureRM'
@@ -74,4 +73,3 @@ stages:
           WebAppName: 'project01'
           packageForLinux: '$(Pipeline.Workspace)'
           DeploymentTypeLinux: 'oneDeploy'
-            
