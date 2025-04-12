@@ -2,10 +2,10 @@ trigger:
   - main
 
 variables:
-  azureSubscription: 'Azure subscription 1 (0b406d1e-4714-4508-9e56-cdb4885278c1)'
-  webAppName: 'project02'
-  vmImageName: 'ubuntu-latest'
-  artifactName: 'drop'
+  buildConfiguration: 'Release'
+  nodeVersion: '20.x'
+  appName: 'project02'
+  resourceGroup: 'project01'
 
 stages:
   - stage: BuildStage
@@ -14,59 +14,42 @@ stages:
       - job: BuildJob
         displayName: 'Build Job'
         pool:
-          vmImage: $(vmImageName)
+          vmImage: 'ubuntu-latest'
         steps:
           - task: NodeTool@0
             inputs:
-              versionSpec: '20.x'
+              versionSpec: '$(nodeVersion)'
             displayName: 'Install Node.js'
 
-          - script: npm cache clean --force
-            displayName: 'Clean npm cache'
+          - script: |
+              npm install
+            displayName: 'Install backend dependencies'
 
           - script: |
-              rm -rf node_modules package-lock.json
-            displayName: 'Remove node_modules and package-lock.json'
-
-          - task: Npm@1
-            displayName: 'Install frontend dependencies'
-            inputs:
-              command: 'install'
-              workingDir: 'client'
-
-          - task: Npm@1
-            displayName: 'Install backend dependencies'
-            inputs:
-              command: 'install'
-              workingDir: '.'
-
-          - task: Npm@1
+              cd client
+              npm install
+              npm run build
             displayName: 'Build frontend'
-            inputs:
-              command: 'custom'
-              workingDir: 'client'
-              customCommand: 'run build'
 
-          - task: CopyFiles@2
-            displayName: 'Copy frontend and backend files'
-            inputs:
-              Contents: |
-                client/build/**
-                **/*.js
-                **/*.json
-              TargetFolder: '$(Build.ArtifactStagingDirectory)'
+          - script: |
+              mkdir -p deploy
+              cp -r client/build deploy/client
+              cp -r * deploy/
+              rm -rf deploy/client/node_modules
+              rm -rf deploy/node_modules
+            displayName: 'Prepare deployment package'
 
           - task: ArchiveFiles@2
-            displayName: 'Archive files'
             inputs:
-              rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'
+              rootFolderOrFile: 'deploy'
               includeRootFolder: false
               archiveType: 'zip'
               archiveFile: '$(Build.ArtifactStagingDirectory)/app.zip'
               replaceExistingArchive: true
+            displayName: 'Archive deployment package'
 
           - publish: '$(Build.ArtifactStagingDirectory)/app.zip'
-            artifact: $(artifactName)
+            artifact: 'drop'
 
   - stage: DeployStage
     displayName: 'Deploy Stage'
@@ -76,21 +59,20 @@ stages:
         displayName: 'Deploy Job'
         environment: 'production'
         pool:
-          vmImage: $(vmImageName)
+          vmImage: 'ubuntu-latest'
         strategy:
           runOnce:
             deploy:
               steps:
                 - download: current
-                  artifact: $(artifactName)
+                  artifact: drop
 
                 - task: AzureRmWebAppDeployment@5
-                  displayName: 'Deploy to Azure Web App'
                   inputs:
                     ConnectionType: 'AzureRM'
-                    azureSubscription: $(azureSubscription)
+                    azureSubscription: 'Azure subscription 1 (0b406d1e-4714-4508-9e56-cdb4885278c1)'
                     appType: 'webAppLinux'
-                    WebAppName: $(webAppName)
-                    packageForLinux: '$(Pipeline.Workspace)/$(artifactName)/app.zip'
+                    WebAppName: '$(appName)'
+                    packageForLinux: '$(Pipeline.Workspace)/drop/app.zip'
                     DeploymentTypeLinux: 'zipDeploy'
                     StartupCommand: 'npm start'
