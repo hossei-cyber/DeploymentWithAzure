@@ -2,50 +2,57 @@ trigger:
 - main
 
 stages:
-  - stage: "BuildStage"
-    jobs:
-    - job: "Buildjob"
-      pool:
-        vmImage: ubuntu-latest
-      steps:
-      - task: NodeTool@0
-        inputs:
-          versionSpec: '20.x'
-        displayName: 'Install Node.js'
+- stage: Build
+  displayName: 'Build Stage'
+  jobs:
+  - job: BuildJob
+    displayName: 'Build Job'
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '20.x'
+      displayName: 'Install Node.js'
 
-      - task: Npm@1
-        displayName: 'Npm Install'
-        inputs:
-          command: 'install'
-          workingDir: '.'
-      - task: ArchiveFiles@2
-        inputs:
-          rootFolderOrFile: '$(Build.BinariesDirectory)'
-          includeRootFolder: true
-          archiveType: 'zip'
-          archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
-          replaceExistingArchive: true
-      - task: PublishPipelineArtifact@1
-        inputs:
-          targetPath: '$(Pipeline.Workspace)'
-          artifact: 'drop'
-          publishLocation: 'pipeline'
+    - script: |
+        npm install
+      displayName: 'Install Dependencies'
 
-  - stage: "DeployStage"
-    dependsOn: "BuildStage"
-    jobs:
-    - job: 
-      pool:
-        vmImage: ubuntu-latest
-      steps:
-      - download: current
-        artifact: drop
-      - task: AzureRmWebAppDeployment@5
-        inputs:
-          ConnectionType: 'AzureRM'
-          azureSubscription: 'Azure for Students(3726fb87-ee7b-42c4-a39c-d437513f686c)'
-          appType: 'webAppLinux'
-          WebAppName: 'project02Student'
-          packageForLinux: '$(Pipeline.Workspace)/drop/$(Build.BuildId).zip'
-          StartupCommand: 'npm start'
-          DeploymentTypeLinux: 'zipDeploy'
+    - task: ArchiveFiles@2
+      inputs:
+        rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
+        includeRootFolder: false
+        archiveType: 'zip'
+        archiveFile: '$(Build.ArtifactStagingDirectory)/backend.zip'
+        replaceExistingArchive: true
+      displayName: 'Archive Backend Files'
+
+    - publish: '$(Build.ArtifactStagingDirectory)/backend.zip'
+      artifact: 'drop'
+
+- stage: Deploy
+  displayName: 'Deploy Stage'
+  dependsOn: Build
+  jobs:
+  - deployment: DeployJob
+    displayName: 'Deploy Job'
+    environment: 'production'
+    pool:
+      vmImage: 'ubuntu-latest'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: current
+            artifact: drop
+
+          - task: AzureRmWebAppDeployment@5
+            inputs:
+              ConnectionType: 'AzureRM'
+              azureSubscription: 'Azure for Students(3726fb87-ee7b-42c4-a39c-d437513f686c)'
+              appType: 'webAppLinux'
+              WebAppName: 'project02Student'
+              packageForLinux: '$(Pipeline.Workspace)/drop/backend.zip'
+              DeploymentTypeLinux: 'zipDeploy'
+              StartupCommand: 'npm start'
