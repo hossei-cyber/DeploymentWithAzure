@@ -41,55 +41,20 @@ stages:
             client/build/**
             server/**
           TargetFolder: '$(Build.ArtifactStagingDirectory)'
+      - task: ArchiveFiles@2
+        inputs:
+          rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'
+          includeRootFolder: true
+          archiveType: 'zip'
+          archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+          replaceExistingArchive: true
       - task: PublishPipelineArtifact@1
         inputs:
-          targetPath: '$(Build.ArtifactStagingDirectory)'
+          targetPath: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
           artifact: 'drop'
           publishLocation: 'pipeline'
 
-  # - stage: "DeploytoDev"
-  #   dependsOn: "BuildStage"
-  #   jobs:
-  #   - job: 
-  #     pool:
-  #       vmImage: ubuntu-latest
-  #     steps:
-  #     - task: DownloadPipelineArtifact@2
-  #       inputs:
-  #         buildType: 'current'
-  #         artifactName: 'drop'
-  #         targetPath: '$(Pipeline.Workspace)'
-  #     - task: AzureRmWebAppDeployment@5
-  #       inputs:
-  #         ConnectionType: 'AzureRM'
-  #         azureSubscription: 'Azure subscription 1 (0b406d1e-4714-4508-9e56-cdb4885278c1)'
-  #         appType: 'webAppLinux'
-  #         WebAppName: 'project01'
-  #         packageForLinux: '$(System.DefaultWorkingDirectory)/**/*.zip'
-  #         DeploymentTypeLinux: 'oneDeploy'
-
-  # - stage: "DeploytoQA"
-  #   dependsOn: "DeploytoDev"
-  #   jobs:
-  #   - job: 
-  #     pool:
-  #       vmImage: ubuntu-latest
-  #     steps:
-  #     - task: DownloadPipelineArtifact@2
-  #       inputs:
-  #         buildType: 'current'
-  #         artifactName: 'drop'
-  #         targetPath: '$(Pipeline.Workspace)'
-  #     - task: AzureRmWebAppDeployment@5
-  #       inputs:
-  #         ConnectionType: 'AzureRM'
-  #         azureSubscription: 'Azure subscription 1 (0b406d1e-4714-4508-9e56-cdb4885278c1)'
-  #         appType: 'webAppLinux'
-  #         WebAppName: 'project01'
-  #         packageForLinux: '$(System.DefaultWorkingDirectory)/**/*.zip'
-  #         DeploymentTypeLinux: 'oneDeploy'
-
-  - stage: "DeploytoProd"
+  - stage: "DeployStage"
     dependsOn: "BuildStage"
     jobs:
     - job: 
@@ -107,5 +72,5 @@ stages:
           azureSubscription: 'Azure subscription 1 (0b406d1e-4714-4508-9e56-cdb4885278c1)'
           appType: 'webAppLinux'
           WebAppName: 'project01'
-          packageForLinux: '$(System.DefaultWorkingDirectory)/**/*.zip'
+          packageForLinux: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
           DeploymentTypeLinux: 'oneDeploy'
