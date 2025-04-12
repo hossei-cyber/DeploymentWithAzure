@@ -14,34 +14,22 @@ stages:
         displayName: 'Install Node.js'
 
       - task: Npm@1
-        displayName: "Npm install for client"
+        displayName: 'Npm Install'
         inputs:
           command: 'install'
-          workingDir: 'client'
-
-      - task: Npm@1
-        displayName: "Npm build for client"
-        inputs:
-          command: 'custom'
-          workingDir: 'client'
-          customCommand: 'run build'
-
-      # - task: CopyFiles@2
-      #   inputs:
-      #     Contents: |
-      #       client/build/**
-      #     TargetFolder: '$(Build.ArtifactStagingDirectory)'
+          workingDir: '.'
       - task: ArchiveFiles@2
-        displayName: 'Archive React Build'
         inputs:
-          rootFolderOrFile: 'client/build'
-          includeRootFolder: false
+          rootFolderOrFile: '$(Build.BinariesDirectory)'
+          includeRootFolder: true
           archiveType: 'zip'
-          archiveFile: '$(Build.ArtifactStagingDirectory)/frontend.zip'
+          archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
           replaceExistingArchive: true
-
-      - publish: '$(Build.ArtifactStagingDirectory)/frontend.zip'
-        artifact: 'drop'
+      - task: PublishPipelineArtifact@1
+        inputs:
+          targetPath: '$(Pipeline.Workspace)'
+          artifact: 'drop'
+          publishLocation: 'pipeline'
 
   - stage: "DeployStage"
     dependsOn: "BuildStage"
@@ -52,12 +40,12 @@ stages:
       steps:
       - download: current
         artifact: drop
-
       - task: AzureRmWebAppDeployment@5
         inputs:
           ConnectionType: 'AzureRM'
           azureSubscription: 'Azure for Students(3726fb87-ee7b-42c4-a39c-d437513f686c)'
           appType: 'webAppLinux'
           WebAppName: 'project02Student'
-          packageForLinux: '$(Pipeline.Workspace)/drop/frontend.zip'
+          packageForLinux: '$(Pipeline.Workspace)/drop/$(Build.BuildId).zip'
+          StartupCommand: 'npm start'
           DeploymentTypeLinux: 'zipDeploy'
