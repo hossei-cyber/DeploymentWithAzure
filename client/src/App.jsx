@@ -8,7 +8,7 @@ function App() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get('https://project02student-gee8aderg9eqh6cf.germanywestcentral-01.azurewebsites.net/getHello', {
+        const response = await axios.get('https://project02student-gee8aderg9eqh6cf.germanywestcentral-01.azurewebsites.net/getFood', {
           withCredentials: true,
         });
         console.log('Fetched data:', response.data);
@@ -23,7 +23,7 @@ function App() {
 
   return (
     <div className="App">
-      {/* {data.length > 0 ? (
+      {data.length > 0 ? (
         <>
           <h1 className='header'>Food Data</h1>
           <div className="food-container">
@@ -40,12 +40,12 @@ function App() {
         </>
       ) : (
         <p>No data available</p>
-      )} */}
-      {data.length > 0 ? (
+      )}
+      {/* {data.length > 0 ? (
           <p>{data}</p>
       ) : (
         <p>Hello World from the Client!</p>
-      )}
+      )} */}
     </div>
   );
 }
