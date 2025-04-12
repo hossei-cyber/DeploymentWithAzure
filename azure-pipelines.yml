@@ -41,16 +41,16 @@ stages:
             client/build/**
             server/**
           TargetFolder: '$(Build.ArtifactStagingDirectory)'
-      - task: ArchiveFiles@2
-        inputs:
-          rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'
-          includeRootFolder: true
-          archiveType: 'zip'
-          archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
-          replaceExistingArchive: true
+      # - task: ArchiveFiles@2
+      #   inputs:
+      #     rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'
+      #     includeRootFolder: true
+      #     archiveType: 'zip'
+      #     archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+      #     replaceExistingArchive: true
       - task: PublishPipelineArtifact@1
         inputs:
-          targetPath: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+          targetPath: '$(Build.ArtifactStagingDirectory)'
           artifact: 'drop'
           publishLocation: 'pipeline'
 
@@ -72,6 +72,6 @@ stages:
           azureSubscription: 'Azure subscription 1 (0b406d1e-4714-4508-9e56-cdb4885278c1)'
           appType: 'webAppLinux'
           WebAppName: 'project01'
-          packageForLinux: '$(Pipeline.Workspace)/$(Build.BuildId).zip'
+          packageForLinux: '$(Pipeline.Workspace)'
           DeploymentTypeLinux: 'oneDeploy'
       
