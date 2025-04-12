@@ -1,0 +1,111 @@
+# Node.js with React
+# Build a Node.js project that uses React.
+# Add steps that analyze code, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
+
+trigger:
+- main
+
+stages:
+  - stage: "BuildStage"
+    jobs:
+    - job: "Buildjob"
+      pool:
+        vmImage: ubuntu-latest
+      steps:
+      - task: NodeTool@0
+        inputs:
+          versionSpec: '20.x'
+        displayName: 'Install Node.js'
+
+      - task: Npm@1
+        displayName: "Npm install for client"
+        inputs:
+          command: 'install'
+          workingDir: 'client'
+      - task: Npm@1
+        displayName: "Npm install for server"
+        inputs:
+          command: 'install'
+          workingDir: 'server'
+      - task: Npm@1
+        displayName: "Npm build for client"
+        inputs:
+          command: 'custom'
+          workingDir: 'client'
+          customCommand: 'run build'
+
+      - task: CopyFiles@2
+        inputs:
+          Contents: |
+            client/build/**
+            server/**
+          TargetFolder: '$(Build.ArtifactStagingDirectory)'
+      - task: PublishPipelineArtifact@1
+        inputs:
+          targetPath: '$(Build.ArtifactStagingDirectory)'
+          artifact: 'drop'
+          publishLocation: 'pipeline'
+
+  # - stage: "DeploytoDev"
+  #   dependsOn: "BuildStage"
+  #   jobs:
+  #   - job: 
+  #     pool:
+  #       vmImage: ubuntu-latest
+  #     steps:
+  #     - task: DownloadPipelineArtifact@2
+  #       inputs:
+  #         buildType: 'current'
+  #         artifactName: 'drop'
+  #         targetPath: '$(Pipeline.Workspace)'
+  #     - task: AzureRmWebAppDeployment@5
+  #       inputs:
+  #         ConnectionType: 'AzureRM'
+  #         azureSubscription: 'Azure subscription 1 (0b406d1e-4714-4508-9e56-cdb4885278c1)'
+  #         appType: 'webAppLinux'
+  #         WebAppName: 'project01'
+  #         packageForLinux: '$(System.DefaultWorkingDirectory)/**/*.zip'
+  #         DeploymentTypeLinux: 'oneDeploy'
+
+  # - stage: "DeploytoQA"
+  #   dependsOn: "DeploytoDev"
+  #   jobs:
+  #   - job: 
+  #     pool:
+  #       vmImage: ubuntu-latest
+  #     steps:
+  #     - task: DownloadPipelineArtifact@2
+  #       inputs:
+  #         buildType: 'current'
+  #         artifactName: 'drop'
+  #         targetPath: '$(Pipeline.Workspace)'
+  #     - task: AzureRmWebAppDeployment@5
+  #       inputs:
+  #         ConnectionType: 'AzureRM'
+  #         azureSubscription: 'Azure subscription 1 (0b406d1e-4714-4508-9e56-cdb4885278c1)'
+  #         appType: 'webAppLinux'
+  #         WebAppName: 'project01'
+  #         packageForLinux: '$(System.DefaultWorkingDirectory)/**/*.zip'
+  #         DeploymentTypeLinux: 'oneDeploy'
+
+  - stage: "DeploytoProd"
+    dependsOn: "BuildStage"
+    jobs:
+    - job: 
+      pool:
+        vmImage: ubuntu-latest
+      steps:
+      - task: DownloadPipelineArtifact@2
+        inputs:
+          buildType: 'current'
+          artifactName: 'drop'
+          targetPath: '$(Pipeline.Workspace)'
+      - task: AzureRmWebAppDeployment@5
+        inputs:
+          ConnectionType: 'AzureRM'
+          azureSubscription: 'Azure subscription 1 (0b406d1e-4714-4508-9e56-cdb4885278c1)'
+          appType: 'webAppLinux'
+          WebAppName: 'project01'
+          packageForLinux: '$(System.DefaultWorkingDirectory)/**/*.zip'
+          DeploymentTypeLinux: 'oneDeploy'
