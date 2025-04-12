@@ -19,31 +19,14 @@ stages:
       - script: |
           rm -rf node_modules package-lock.json
         displayName: 'Remove node_modules and package-lock.json'
-
-      - task: Npm@1
-        displayName: "Npm install for client"
-        inputs:
-          command: 'install'
-          workingDir: 'client'
-
-      - task: Npm@1
-        displayName: "Npm install"
-        inputs:
-          command: 'install'
-          workingDir: '.'
-
-      - task: Npm@1
-        displayName: "Npm build for client"
-        inputs:
-          command: 'custom'
-          workingDir: 'client'
-          customCommand: 'run build'
-
+      - script: |
+          npm install
+          npm run build --if-present
+          npm run test --if-present
+        displayName: 'npm install, build and test'
       - task: CopyFiles@2
         inputs:
-          Contents: |
-            client/build/**
-            /**
+          Contents: /**
           TargetFolder: '$(Build.ArtifactStagingDirectory)'
 
       - task: PublishPipelineArtifact@1
@@ -51,6 +34,7 @@ stages:
           targetPath: '$(Build.ArtifactStagingDirectory)'
           artifact: 'drop'
           publishLocation: 'pipeline'
+        
 
   - stage: "DeployStage"
     dependsOn: "BuildStage"
