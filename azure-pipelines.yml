@@ -39,7 +39,7 @@ stages:
         inputs:
           Contents: |
             client/build/**
-            server/**
+            /**
           TargetFolder: '$(Build.ArtifactStagingDirectory)'
       # - task: ArchiveFiles@2
       #   inputs:
@@ -74,5 +74,4 @@ stages:
           WebAppName: 'project01'
           packageForLinux: '$(Pipeline.Workspace)'
           DeploymentTypeLinux: 'oneDeploy'
-          StartupCommand: 'cd server && npm start'
             
