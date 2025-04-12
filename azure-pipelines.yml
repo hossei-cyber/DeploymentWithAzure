@@ -26,19 +26,19 @@ stages:
           workingDir: 'client'
           customCommand: 'run build'
 
-      - task: CopyFiles@2
-        inputs:
-          Contents: |
-            client/build/**
-          TargetFolder: '$(Build.ArtifactStagingDirectory)'
+      # - task: CopyFiles@2
+      #   inputs:
+      #     Contents: |
+      #       client/build/**
+      #     TargetFolder: '$(Build.ArtifactStagingDirectory)'
       - task: ArchiveFiles@2
+        displayName: 'Archive React Build'
         inputs:
-          rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
+          rootFolderOrFile: 'client/build'
           includeRootFolder: false
           archiveType: 'zip'
           archiveFile: '$(Build.ArtifactStagingDirectory)/frontend.zip'
           replaceExistingArchive: true
-        displayName: 'Archive frontend Files'
 
       - publish: '$(Build.ArtifactStagingDirectory)/frontend.zip'
         artifact: 'drop'
