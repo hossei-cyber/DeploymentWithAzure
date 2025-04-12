@@ -25,6 +25,11 @@ stages:
           command: 'custom'
           workingDir: 'client'
           customCommand: 'run build'
+      - task: CopyFiles@2
+        inputs:
+          Contents: |
+            client/build/**
+          TargetFolder: '$(Build.ArtifactStagingDirectory)'
 
       - task: ArchiveFiles@2
         displayName: 'Archive React Build'
@@ -40,6 +45,7 @@ stages:
           targetPath: '$(Build.ArtifactStagingDirectory)'
           artifact: 'drop'
           publishLocation: 'pipeline'
+          
       - script: |
           echo "Pipeline.Workspace path:"
           echo "$(Pipeline.Workspace)"
@@ -59,7 +65,7 @@ stages:
         inputs:
           buildType: 'current'
           artifactName: 'drop'
-          targetPath: '$(Pipeline.Workspace)'
+          targetPath: '$(System.ArtifactsDirectory'
 
       - task: AzureRmWebAppDeployment@5
         displayName: 'Deploy React App to Azure'
