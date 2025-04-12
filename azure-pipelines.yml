@@ -46,6 +46,6 @@ stages:
           azureSubscription: 'Azure for Students(3726fb87-ee7b-42c4-a39c-d437513f686c)'
           appType: 'webAppLinux'
           WebAppName: 'project02Student'
-          packageForLinux: '$(Pipeline.Workspace)/$(Build.BuildId).zip'
+          packageForLinux: '$(Pipeline.Workspace)/drop/$(Build.BuildId).zip'
           StartupCommand: 'npm start'
-          DeploymentTypeLinux: 'oneDeploy'
+          DeploymentTypeLinux: 'zipDeploy'
