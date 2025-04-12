@@ -2,9 +2,9 @@ trigger:
 - main
 
 stages:
-  - stage: "BuildStage"
+  - stage: BuildStage
     jobs:
-    - job: "Buildjob"
+    - job: BuildJob
       pool:
         vmImage: ubuntu-latest
       steps:
@@ -14,31 +14,26 @@ stages:
         displayName: 'Install Node.js'
 
       - task: Npm@1
-        displayName: "Npm install"
+        displayName: 'Install Dependencies'
         inputs:
           command: 'install'
           workingDir: 'client'
 
       - task: Npm@1
-        displayName: "Npm build"
+        displayName: 'Build React App'
         inputs:
           command: 'custom'
           workingDir: 'client'
           customCommand: 'run build'
 
-      - task: CopyFiles@2
-        inputs:
-          Contents: |
-            client/build/**
-          TargetFolder: '$(Build.ArtifactStagingDirectory)'
       - task: ArchiveFiles@2
+        displayName: 'Archive React Build'
         inputs:
-          rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
+          rootFolderOrFile: 'client/build'
           includeRootFolder: false
           archiveType: 'zip'
-          archiveFile: '$(Build.ArtifactStagingDirectory)/backend.zip'
+          archiveFile: '$(Build.ArtifactStagingDirectory)/frontend.zip'
           replaceExistingArchive: true
-        displayName: 'Archive Backend Files'
 
       - task: PublishPipelineArtifact@1
         inputs:
@@ -46,10 +41,10 @@ stages:
           artifact: 'drop'
           publishLocation: 'pipeline'
 
-  - stage: "DeployStage"
-    dependsOn: "BuildStage"
+  - stage: DeployStage
+    dependsOn: BuildStage
     jobs:
-    - job: 
+    - job: DeployJob
       pool:
         vmImage: ubuntu-latest
       steps:
@@ -58,14 +53,13 @@ stages:
           buildType: 'current'
           artifactName: 'drop'
           targetPath: '$(Pipeline.Workspace)'
-          
+
       - task: AzureRmWebAppDeployment@5
+        displayName: 'Deploy React App to Azure'
         inputs:
           ConnectionType: 'AzureRM'
           azureSubscription: 'Azure for Students(3726fb87-ee7b-42c4-a39c-d437513f686c)'
           appType: 'webAppLinux'
           WebAppName: 'project01Student'
-          packageForLinux: '$(Pipeline.Workspace)/drop/backend.zip'
+          packageForLinux: '$(Pipeline.Workspace)/drop/frontend.zip'
           DeploymentTypeLinux: 'zipDeploy'
-          StartupCommand: 'npm start'
-      
