@@ -65,7 +65,13 @@ stages:
         inputs:
           buildType: 'current'
           artifactName: 'drop'
-          targetPath: '$(System.ArtifactsDirectory'
+          targetPath: '$(System.ArtifactsDirectory)'
+
+      - script: |
+          echo "Artifact directory:"
+          echo "$(System.ArtifactsDirectory)/drop"
+          ls -la $(System.ArtifactsDirectory)/drop
+        displayName: 'Verify downloaded artifact'
 
       - task: AzureRmWebAppDeployment@5
         displayName: 'Deploy React App to Azure'
@@ -75,5 +81,4 @@ stages:
           appType: 'webAppLinux'
           WebAppName: 'project01Student'
           packageForLinux: '$(System.ArtifactsDirectory)/drop/frontend.zip'
-
           DeploymentTypeLinux: 'zipDeploy'
