@@ -2,9 +2,9 @@ trigger:
 - main
 
 stages:
-  - stage: BuildStage
+  - stage: "BuildStage"
     jobs:
-    - job: BuildJob
+    - job: "Buildjob"
       pool:
         vmImage: ubuntu-latest
       steps:
@@ -14,50 +14,34 @@ stages:
         displayName: 'Install Node.js'
 
       - task: Npm@1
-        displayName: 'Install Dependencies'
+        displayName: "Npm install for client"
         inputs:
           command: 'install'
           workingDir: 'client'
 
       - task: Npm@1
-        displayName: 'Build React App'
+        displayName: "Npm build for client"
         inputs:
           command: 'custom'
           workingDir: 'client'
           customCommand: 'run build'
+
       - task: CopyFiles@2
         inputs:
           Contents: |
             client/build/**
           TargetFolder: '$(Build.ArtifactStagingDirectory)'
 
-      - task: ArchiveFiles@2
-        displayName: 'Archive React Build'
-        inputs:
-          rootFolderOrFile: 'client/build'
-          includeRootFolder: false
-          archiveType: 'zip'
-          archiveFile: '$(Build.ArtifactStagingDirectory)/frontend.zip'
-          replaceExistingArchive: true
-
       - task: PublishPipelineArtifact@1
         inputs:
           targetPath: '$(Build.ArtifactStagingDirectory)'
           artifact: 'drop'
           publishLocation: 'pipeline'
-          
-      - script: |
-          echo "Pipeline.Workspace path:"
-          echo "$(Pipeline.Workspace)"
-          echo "Listing contents of $(Pipeline.Workspace)/drop:"
-          ls -la $(Pipeline.Workspace)/drop
-        displayName: 'Verify artifact location'
 
-
-  - stage: DeployStage
-    dependsOn: BuildStage
+  - stage: "DeployStage"
+    dependsOn: "BuildStage"
     jobs:
-    - job: DeployJob
+    - job: 
       pool:
         vmImage: ubuntu-latest
       steps:
@@ -65,20 +49,13 @@ stages:
         inputs:
           buildType: 'current'
           artifactName: 'drop'
-          targetPath: '$(System.ArtifactsDirectory)'
-
-      - script: |
-          echo "Artifact directory:"
-          echo "$(System.ArtifactsDirectory)/drop"
-          ls -la $(System.ArtifactsDirectory)/drop
-        displayName: 'Verify downloaded artifact'
+          targetPath: '$(Pipeline.Workspace)'
 
       - task: AzureRmWebAppDeployment@5
-        displayName: 'Deploy React App to Azure'
         inputs:
           ConnectionType: 'AzureRM'
           azureSubscription: 'Azure for Students(3726fb87-ee7b-42c4-a39c-d437513f686c)'
           appType: 'webAppLinux'
           WebAppName: 'project01Student'
-          packageForLinux: '$(System.ArtifactsDirectory)/drop/frontend.zip'
-          DeploymentTypeLinux: 'zipDeploy'
+          packageForLinux: '$(Pipeline.Workspace)'
+          DeploymentTypeLinux: 'oneDeploy'
