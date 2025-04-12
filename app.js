@@ -37,8 +37,12 @@ app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 
 app.get('/getHello', (req, res) => {
+  res.send('Hello from the server 2!');
+});
+app.get('/', (req, res) => {
   res.send('Hello from the server!');
 });
+
 
 // Route to get food data
 // app.get('/getFood', async (req, res) => {
