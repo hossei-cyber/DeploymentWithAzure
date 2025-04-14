@@ -1,5 +1,5 @@
 trigger:
-- main
+- server
 
 stages:
 - stage: Build
@@ -16,6 +16,7 @@ stages:
       displayName: 'Install Node.js'
 
     - script: |
+        cd server
         npm install
       displayName: 'Install Dependencies'
 
