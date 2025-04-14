@@ -57,12 +57,12 @@ function App() {
       ) : (
         <p>No data available</p>
       )}
-    </div>
-  );
-}
-export default App;
       {/* {data.length > 0 ? (
           <p>{data}</p>
       ) : (
         <p>Hello World from the Client!</p>
       )} */}
+    </div>
+  );
+}
+export default App;
