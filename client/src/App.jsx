@@ -5,6 +5,9 @@ import axios from 'axios';
 function App() {
   const [data, setData] = useState([]);
 
+
+
+// for Azure 
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -20,10 +23,11 @@ function App() {
     fetchData();
   }, []);
 
+  // for local host
   // useEffect(() => {
   //   const fetchData = async () => {
   //     try {
-  //       const response = await axios.get('http://localhost:8080/getFood', {
+  //       const response = await axios.get('http://localhost:8080/getHello', {
   //         withCredentials: true,
   //       });
   //       console.log('Fetched data:', response.data);
