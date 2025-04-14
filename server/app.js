@@ -39,7 +39,7 @@ app.get('/getHello', (req, res) => {
   res.send('Hello from the server 2!');
 });
 app.get('/', (req, res) => {
-  res.send('Hello from the server!');
+  res.send('Hello from the SERVER!');
 });
 
 app.get('/getFood', async (req, res) => {
