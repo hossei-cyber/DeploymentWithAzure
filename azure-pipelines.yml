@@ -56,4 +56,4 @@ stages:
               WebAppName: 'project02Student'
               packageForLinux: '$(Pipeline.Workspace)/drop/backend.zip'
               DeploymentTypeLinux: 'zipDeploy'
-              StartupCommand: 'npm start'
+              StartupCommand: 'cd server && npm start'
